@@ -109,7 +109,8 @@ class MyMT_NStep_Padding(chainer.Chain):
         _, _, dec_batch_mh = self.H(h, c, x_k)
 
         #concat
-        batch_h = [F.concat((e[-1:,:],d), axis=0) for e,d in zip(enc_batch_mh, dec_batch_mh)]
+        print([x.shape for x in enc_batch_mh])
+        batch_h = [F.concat((e[-1:],d), axis=0) for e,d in zip(enc_batch_mh, dec_batch_mh)]
         batch_y = [self.W(h) for h in batch_h]
 
         # loss
