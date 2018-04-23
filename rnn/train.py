@@ -2,8 +2,12 @@
 
 import numpy as np
 import chainer
-from chainer import cuda, Function, gradient_check, Variable, \
-                        optimizers, serializers, utils
+from chainer import cuda
+from chainer import gradient_check
+from chainer import Variable
+from chainer import optimizers
+from chainer import serializers
+from chainer import utils
 from chainer import Link, Chain, ChainList
 import chainer.functions as F
 import chainer.links as L
@@ -16,7 +20,6 @@ import time
 from models import *
 
 
-
 rootdir = (os.path.dirname(__file__) or ".")
 
 train_default = os.path.join(rootdir, "../data/ptb.train.txt")
@@ -26,14 +29,14 @@ parser.add_argument("-t", "--train", default=train_default, help="train data")
 parser.add_argument("-g", "--gpu", action="store_true", help="enable gpu")
 parser.add_argument("-e", "--epoch", type=int, default=5, help="num epoch")
 parser.add_argument("-o", "--outputdir", default=outdir_default, help="output dir")
-parser.add_argument("-a", "--algo", choices=["rnn", "lstm", "gru"], default="rnn", help="rnn or lstm")
+parser.add_argument("-a", "--algo", choices=["rnn", "lstm", "gru"], default="lstm", help="rnn or lstm")
 args = parser.parse_args()
 
-#mkdir
+# mkdir
 os.makedirs(args.outputdir, exist_ok=True)
 
 
-#select gpu
+# select gpu
 if args.gpu:
     import cupy
     xp = cupy
@@ -42,7 +45,7 @@ else:
 
 
 # dict
-w_dict = collections.defaultdict(lambda:len(w_dict))
+w_dict = collections.defaultdict(lambda: len(w_dict))
 EOS_ID = w_dict['<eos>']
 
 # convert to id
@@ -54,14 +57,17 @@ with open(args.train) as f:
         train_data.append(sentence)
 
 # save vocab
-with open(os.path.join(args.outputdir,'vocab.txt'), 'w') as f:
-    for k,v in sorted(w_dict.items(), key=lambda x: x[1]):
+with open(os.path.join(args.outputdir, 'vocab.txt'), 'w') as f:
+    for k, v in sorted(w_dict.items(), key=lambda x: x[1]):
         print(k, file=f)
 
 # convert to [input, output] pair
 x_train = [s[0:-1] for s in train_data]
 y_train = [s[1:] for s in train_data]
 n_train = len(train_data)
+
+print("vocab size", len(w_dict))
+
 
 # Initialize model
 if args.algo == "rnn":
@@ -84,9 +90,9 @@ print("{0} sentences".format(len(train_data)))
 for epoch in range(args.epoch):
     start_time = time.time()
 
-    for i,(x,y) in enumerate(zip(x_train, y_train)):
+    for i, (x, y) in enumerate(zip(x_train, y_train)):
         model.zerograds()
-        loss = model(x,y)
+        loss = model(x, y)
         loss.backward()
         optimizer.update()
 
@@ -94,13 +100,13 @@ for epoch in range(args.epoch):
         if i > 0 and i % 10 == 0:
             elapsed_time = time.time() - start_time
             pct = 100. * i / n_train
-            speed = elapsed_time / (i+1)
-            print(" {:5d} / {:5d} ({:5.2f} percent) done  {:5.2f} sec ({:5.2f} sec/sentence)  loss {}".format(i, n_train, pct, elapsed_time, speed, loss.data), flush=True)
+            speed = elapsed_time / (i + 1)
+            print(" {:5d} / {:5d} ({:5.2f} percent) done  {:5.2f} sec ({:5.2f} sec/sentence)  loss {}".format(i,
+                                                                                                              n_train, pct, elapsed_time, speed, loss.data), flush=True)
 
         loss.unchain_backward()
 
-    #save model at epoch n
+    # save model at epoch n
     outfile = os.path.join(args.outputdir, "{}-{}.model".format(args.algo, epoch))
     print("output to {0}".format(outfile), flush=True)
     serializers.save_npz(outfile, model)
-
