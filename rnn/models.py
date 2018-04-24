@@ -3,7 +3,7 @@
 import chainer
 import chainer.functions as F
 import chainer.links as L
-import chainer.Variable as Variable
+from chainer import Variable
 import numpy as np
 
 

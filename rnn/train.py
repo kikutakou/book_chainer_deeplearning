@@ -84,6 +84,7 @@ if args.gpu:
     cuda.get_device(0).use()
     model.to_gpu()
 
+print("model {} selected".format(model.__class__.__name__) )
 
 # training and Save
 print("{0} sentences".format(len(train_data)))
